@@ -338,6 +338,20 @@ select:focus {
   font-weight: 650;
 }
 
+.person-period {
+  transition: stroke 180ms ease;
+}
+
+.svg-name {
+  transition: fill 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .person-period, .svg-name {
+    transition: none;
+  }
+}
+
 .is-inactive .person-period {
   stroke: #686868;
 }

@@ -494,26 +494,32 @@ function drawPeople(svg, chart) {
 function setupTimelineHover(svg, chart) {
   const rows = [...svg.querySelectorAll("[data-person-index]")].map((node) => ({
     node,
-    periods: normalizedPeriods(state.people[Number(node.dataset.personIndex)]),
+    periods: normalizedPeriods(state.people[Number(node.dataset.personIndex)])
+      .map((period) => ({ start: period.start, end: period.end ?? chart.currentYear }))
+      .filter((period) => period.end > period.start),
   }));
-  const reset = () => rows.forEach(({ node }) => node.classList.remove("is-inactive"));
+  let hoveredRow = null;
+  const reset = () => {
+    hoveredRow = null;
+    rows.forEach(({ node }) => node.classList.remove("is-inactive"));
+  };
 
   svg.addEventListener("pointermove", (event) => {
-    if (event.pointerType === "touch" || !event.target.closest(".person-period")) {
+    if (event.pointerType === "touch" || !event.target.closest(".person-period, .svg-name")) {
       reset();
       return;
     }
-    const matrix = svg.getScreenCTM();
-    if (!matrix) return;
-    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
-    const year = chart.startYear + (point.x - chart.left) / chart.yearWidth;
+    const targetRow = event.target.closest("[data-person-index]");
+    if (targetRow === hoveredRow) return;
+    const selected = rows.find(({ node }) => node === targetRow);
+    if (!selected) return;
+    hoveredRow = targetRow;
 
     rows.forEach(({ node, periods }) => {
-      const present = periods.some((period) => {
-        const end = period.end ?? chart.currentYear;
-        return end > period.start && period.start <= year && year <= end;
-      });
-      node.classList.toggle("is-inactive", !present);
+      const overlaps = periods.some((period) => selected.periods.some((other) =>
+        period.start < other.end && other.start < period.end,
+      ));
+      node.classList.toggle("is-inactive", node !== targetRow && !overlaps);
     });
   });
   svg.addEventListener("pointerleave", reset);
