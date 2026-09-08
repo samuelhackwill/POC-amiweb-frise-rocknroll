@@ -479,10 +479,17 @@ function drawGrid(svg, chart) {
 
 function drawPeople(svg, chart) {
   const peopleGroup = createSvg("g");
+  const orderedPeople = state.people
+    .map((person, personIndex) => ({
+      person,
+      personIndex,
+      start: Math.min(...normalizedPeriods(person).map((period) => period.start)),
+    }))
+    .sort((a, b) => a.start - b.start || a.personIndex - b.personIndex);
 
-  state.people.forEach((person, personIndex) => {
+  orderedPeople.forEach(({ person, personIndex }, rowIndex) => {
     const personGroup = createSvg("g", { "data-person-index": personIndex });
-    const y = chart.rowTop + personIndex * chart.rowHeight;
+    const y = chart.rowTop + rowIndex * chart.rowHeight;
     const label = createSvg("text", {
       x: chart.left - 24,
       y: y + 5,
