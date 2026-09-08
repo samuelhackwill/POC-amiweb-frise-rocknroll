@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Frise rock'n'roll</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="data-panel" aria-label="Données de la frise">
+        <header class="panel-header">
+          <p class="kicker">POC</p>
+          <h1>Frise rock'n'roll</h1>
+        </header>
+
+        <section class="control-section" aria-label="Paramètres globaux">
+          <h2>Paramètres</h2>
+          <div class="control-grid">
+            <label class="control">
+              <span>Année actuelle</span>
+              <input id="currentYearInput" type="number" min="1990" max="2100" step="1" />
+            </label>
+
+            <label class="control">
+              <span>Création de L'Amicale</span>
+              <input id="creationDateInput" type="date" />
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button id="addPersonButton" type="button">+ Peep</button>
+            <button id="resetButton" type="button">Réinitialiser</button>
+          </div>
+        </section>
+
+        <section class="control-section people-section" aria-label="Peeps">
+          <div class="section-head">
+            <h2>Peeps</h2>
+            <span id="peopleCount" class="count-pill"></span>
+          </div>
+          <div id="peopleEditor" class="people-editor"></div>
+        </section>
+      </aside>
+
+      <section class="frise-workspace" aria-label="Frise générée">
+        <header class="frise-topbar">
+          <div id="roleLegend" class="role-legend" aria-label="Légende des rôles"></div>
+        </header>
+
+        <div class="timeline-scroll" id="timelineScroll">
+          <div id="timelineMount" class="timeline-mount"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./src/main.js" type="module"></script>
+  </body>
+</html>
