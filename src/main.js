@@ -171,6 +171,16 @@ const timelineScroll = document.querySelector("#timelineScroll");
 const roleById = new Map(roles.map((role) => [role.id, role]));
 let idCounter = Date.now();
 let state = loadState();
+const creationTooltip = el("div", "creation-tooltip");
+creationTooltip.id = "creation-tooltip";
+creationTooltip.setAttribute("role", "tooltip");
+creationTooltip.hidden = true;
+document.body.append(creationTooltip);
+document.addEventListener("scroll", () => { creationTooltip.hidden = true; }, true);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") creationTooltip.hidden = true;
+});
+window.addEventListener("resize", () => { creationTooltip.hidden = true; });
 
 renderStaticControls();
 renderLegend();
@@ -385,6 +395,7 @@ function createPeriodEditor(period) {
 }
 
 function renderTimeline() {
+  creationTooltip.hidden = true;
   peopleCount.textContent = String(state.people.length);
   timelineMount.replaceChildren();
 
@@ -584,16 +595,42 @@ function drawCreationMarkers(group, person, y, chart) {
       const x = xForYear(year, chart);
       const rotation = -18 + seededNumber(`${person.id}-creation-${index}`) * 36;
 
-      group.append(
-        createSvg("path", {
+      const marker = createSvg("path", {
           d: starPath(x, y, 15, 6.4, 6, rotation),
+          class: "creation-marker",
+          tabindex: "0",
+          "aria-label": `Projet ${index + 1}`,
+          "aria-describedby": "creation-tooltip",
           fill: "#7890ff",
           stroke: "#0b0b0b",
           "stroke-width": 4,
           "stroke-linejoin": "round",
           filter: "url(#marker-shadow)",
-        }),
-      );
+        });
+      const showTooltip = () => {
+        const title = el("strong");
+        title.textContent = `Projet ${index + 1}`;
+        const date = el("span");
+        const wholeYear = Math.floor(year);
+        const start = Date.UTC(wholeYear, 0, 1);
+        const end = Date.UTC(wholeYear + 1, 0, 1);
+        const formattedDate = Number.isInteger(year) ? String(year) :
+          new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" })
+            .format(new Date(start + (year - wholeYear) * (end - start)));
+        date.textContent = `Création : ${formattedDate}`;
+        creationTooltip.replaceChildren(title, date);
+        creationTooltip.hidden = false;
+        const bounds = marker.getBoundingClientRect();
+        const tooltipBounds = creationTooltip.getBoundingClientRect();
+        creationTooltip.style.left = `${clamp(bounds.x + bounds.width / 2 - tooltipBounds.width / 2, 8, window.innerWidth - tooltipBounds.width - 8)}px`;
+        const top = bounds.top - tooltipBounds.height - 10;
+        creationTooltip.style.top = `${clamp(top >= 8 ? top : bounds.bottom + 10, 8, window.innerHeight - tooltipBounds.height - 8)}px`;
+      };
+      marker.addEventListener("pointerenter", showTooltip);
+      marker.addEventListener("focus", showTooltip);
+      marker.addEventListener("pointerleave", () => { creationTooltip.hidden = true; });
+      marker.addEventListener("blur", () => { creationTooltip.hidden = true; });
+      group.append(marker);
     });
 }
 
