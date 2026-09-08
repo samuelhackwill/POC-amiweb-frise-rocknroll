@@ -520,33 +520,52 @@ function drawPeople(svg, chart) {
 }
 
 function drawPeriods(group, person, y, chart) {
-  const periods = normalizedPeriods(person);
+  const periods = normalizedPeriods(person)
+    .map((period) => ({
+      ...period,
+      start: clamp(period.start, chart.startYear, chart.endYear),
+      end: clamp(period.end ?? chart.currentYear, chart.startYear, chart.endYear),
+    }))
+    .filter((period) => period.end > period.start);
+  if (periods.length === 0) return;
 
-  periods.forEach((period, index) => {
-    const role = roleById.get(period.role) ?? roles[0];
-    const start = clamp(period.start, chart.startYear, chart.endYear);
-    const end = clamp(period.end ?? chart.currentYear, chart.startYear, chart.endYear);
+  const boundaries = [...new Set(periods.flatMap((period) => [period.start, period.end]))]
+    .sort((a, b) => a - b);
+  const path = createRockLinePath(
+    xForYear(boundaries[0], chart),
+    xForYear(boundaries.at(-1), chart),
+    y,
+    person.id,
+  );
 
-    if (end <= start) return;
+  // Clip a shared curve at role changes so overlapping strokes stay concentric.
+  boundaries.slice(0, -1).forEach((start, segmentIndex) => {
+    const end = boundaries[segmentIndex + 1];
+    const active = periods.filter((period) => period.start < end && period.end > start);
+    if (active.length === 0) return;
 
-    const path = createRockLinePath(
-      xForYear(start, chart),
-      xForYear(end, chart),
-      y + (index - (periods.length - 1) / 2) * 4,
-      `${person.id}-${period.id}`,
-    );
+    const clipId = `period-clip-${y}-${segmentIndex}`;
+    const clip = createSvg("clipPath", { id: clipId });
+    clip.append(createSvg("rect", {
+      x: xForYear(start, chart),
+      y: y - chart.rowHeight / 2,
+      width: xForYear(end, chart) - xForYear(start, chart),
+      height: chart.rowHeight,
+    }));
+    group.append(clip);
 
-    group.append(
-      createSvg("path", {
+    active.forEach((period, index) => {
+      const role = roleById.get(period.role) ?? roles[0];
+      group.append(createSvg("path", {
         d: path,
+        "clip-path": `url(#${clipId})`,
         fill: "none",
         stroke: role.color,
-        "stroke-width": 24,
+        "stroke-width": 24 * (active.length - index) / active.length,
         "stroke-linecap": "round",
         "stroke-linejoin": "round",
-        opacity: "0.98",
-      }),
-    );
+      }));
+    });
   });
 }
 
