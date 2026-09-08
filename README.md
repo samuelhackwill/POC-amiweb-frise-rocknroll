@@ -20,6 +20,8 @@ npm run dev
 
 ## GitHub Pages
 
+Pushes to `main` automatically build and deploy the POC using GitHub Actions.
+
 The Vite base path is configurable for project-page builds:
 
 ```sh
