@@ -427,6 +427,7 @@ function renderTimeline() {
 
   drawGrid(svg, chart);
   drawPeople(svg, chart);
+  setupTimelineHover(svg, chart);
 
   timelineMount.append(svg);
 }
@@ -469,6 +470,7 @@ function drawPeople(svg, chart) {
   const peopleGroup = createSvg("g");
 
   state.people.forEach((person, personIndex) => {
+    const personGroup = createSvg("g", { "data-person-index": personIndex });
     const y = chart.rowTop + personIndex * chart.rowHeight;
     const label = createSvg("text", {
       x: chart.left - 24,
@@ -479,13 +481,43 @@ function drawPeople(svg, chart) {
     });
 
     label.textContent = person.name || "Sans nom";
-    peopleGroup.append(label);
+    personGroup.append(label);
 
-    drawPeriods(peopleGroup, person, y, chart);
-    drawCreationMarkers(peopleGroup, person, y, chart);
+    drawPeriods(personGroup, person, y, chart);
+    drawCreationMarkers(personGroup, person, y, chart);
+    peopleGroup.append(personGroup);
   });
 
   svg.append(peopleGroup);
+}
+
+function setupTimelineHover(svg, chart) {
+  const rows = [...svg.querySelectorAll("[data-person-index]")].map((node) => ({
+    node,
+    periods: normalizedPeriods(state.people[Number(node.dataset.personIndex)]),
+  }));
+  const reset = () => rows.forEach(({ node }) => node.classList.remove("is-inactive"));
+
+  svg.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "touch" || !event.target.closest(".person-period")) {
+      reset();
+      return;
+    }
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return;
+    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const year = chart.startYear + (point.x - chart.left) / chart.yearWidth;
+
+    rows.forEach(({ node, periods }) => {
+      const present = periods.some((period) => {
+        const end = period.end ?? chart.currentYear;
+        return end > period.start && period.start <= year && year <= end;
+      });
+      node.classList.toggle("is-inactive", !present);
+    });
+  });
+  svg.addEventListener("pointerleave", reset);
+  svg.addEventListener("pointercancel", reset);
 }
 
 function drawPeriods(group, person, y, chart) {
@@ -527,6 +559,7 @@ function drawPeriods(group, person, y, chart) {
       const role = roleById.get(period.role) ?? roles[0];
       group.append(createSvg("path", {
         d: path,
+        class: "person-period",
         "clip-path": `url(#${clipId})`,
         fill: "none",
         stroke: role.color,

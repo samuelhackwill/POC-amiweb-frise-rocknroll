@@ -338,6 +338,14 @@ select:focus {
   font-weight: 650;
 }
 
+.is-inactive .person-period {
+  stroke: #686868;
+}
+
+.is-inactive .svg-name {
+  fill: #686868;
+}
+
 .svg-year {
   fill: var(--muted-strong);
   font-size: 16px;
