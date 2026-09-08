@@ -3,11 +3,12 @@ const STORAGE_KEY = "amiweb-frise-rocknroll-state-v1";
 const FALLBACK_CURRENT_YEAR = 2026;
 
 const roles = [
-  { id: "artiste", label: "Artiste associé", color: "#6d82ff" },
-  { id: "production", label: "Production", color: "#ff1717" },
-  { id: "administration", label: "Administration", color: "#ffe600" },
-  { id: "direction", label: "Direction", color: "#971fa8" },
-  { id: "regie", label: "Régie", color: "#55ef45" },
+  { id: "artiste", label: "Artiste associé", color: "#6d82ff", tier: 1 },
+  { id: "production", label: "Production", color: "#ff1717", tier: 1 },
+  { id: "administration", label: "Administration", color: "#ffe600", tier: 1 },
+  { id: "direction", label: "Direction", color: "#971fa8", tier: 2 },
+  { id: "regie", label: "Régie", color: "#55ef45", tier: 2 },
+  { id: "collaborateur", label: "Collaborateur régulier", color: "#ff7eb6", tier: 2 },
 ];
 
 const defaultState = {
@@ -570,7 +571,10 @@ function drawPeriods(group, person, y, chart) {
   // Clip a shared curve at role changes so overlapping strokes stay concentric.
   boundaries.slice(0, -1).forEach((start, segmentIndex) => {
     const end = boundaries[segmentIndex + 1];
-    const active = periods.filter((period) => period.start < end && period.end > start);
+    const active = periods
+      .filter((period) => period.start < end && period.end > start)
+      .sort((a, b) => (roleById.get(a.role) ?? roles[0]).tier
+        - (roleById.get(b.role) ?? roles[0]).tier);
     if (active.length === 0) return;
 
     const clipId = `period-clip-${y}-${segmentIndex}`;
