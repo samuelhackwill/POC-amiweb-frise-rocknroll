@@ -485,7 +485,9 @@ function drawPeople(svg, chart) {
       personIndex,
       start: Math.min(...normalizedPeriods(person).map((period) => period.start)),
     }))
-    .sort((a, b) => a.start - b.start || a.personIndex - b.personIndex);
+    .sort((a, b) => a.start - b.start
+      || a.person.name.localeCompare(b.person.name, "fr", { sensitivity: "base" })
+      || a.personIndex - b.personIndex);
 
   orderedPeople.forEach(({ person, personIndex }, rowIndex) => {
     const personGroup = createSvg("g", { "data-person-index": personIndex });
