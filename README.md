@@ -2,6 +2,8 @@
 
 Dynamic timeline proof of concept for Amiweb.
 
+[Live POC](https://samuelhackwill.github.io/POC-amiweb-frise-rocknroll/)
+
 ## Notes
 
 - Goal: generate a visual frise from editable data.
