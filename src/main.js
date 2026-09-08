@@ -484,8 +484,10 @@ function drawPeople(svg, chart) {
       person,
       personIndex,
       start: Math.min(...normalizedPeriods(person).map((period) => period.start)),
+      surname: person.name.trim().split(/\s+/).slice(1).join(" ") || person.name.trim(),
     }))
     .sort((a, b) => a.start - b.start
+      || a.surname.localeCompare(b.surname, "fr", { sensitivity: "base" })
       || a.person.name.localeCompare(b.person.name, "fr", { sensitivity: "base" })
       || a.personIndex - b.personIndex);
 
