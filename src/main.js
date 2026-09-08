@@ -427,7 +427,6 @@ function renderTimeline() {
 
   drawGrid(svg, chart);
   drawPeople(svg, chart);
-  drawCreationAxis(svg, chart);
 
   timelineMount.append(svg);
 }
@@ -464,36 +463,6 @@ function drawGrid(svg, chart) {
   }
 
   svg.append(gridGroup);
-}
-
-function drawCreationAxis(svg, chart) {
-  const creationYear = getCreationYear();
-  const x = xForYear(creationYear, chart);
-
-  if (x < chart.left || x > chart.width - chart.right) return;
-
-  const group = createSvg("g", { opacity: "0.82" });
-  group.append(
-    createSvg("line", {
-      x1: x,
-      x2: x,
-      y1: chart.axisTop + 4,
-      y2: chart.height - 28,
-      stroke: "var(--creation)",
-      "stroke-width": 1.5,
-      "stroke-dasharray": "4 8",
-    }),
-    createSvg("path", {
-      d: starPath(x, chart.axisTop - 48, 17, 7, 6, -24),
-      fill: "var(--creation)",
-      stroke: "#101010",
-      "stroke-width": 4,
-      "stroke-linejoin": "round",
-      filter: "url(#marker-shadow)",
-    }),
-  );
-
-  svg.append(group);
 }
 
 function drawPeople(svg, chart) {
@@ -561,7 +530,7 @@ function drawPeriods(group, person, y, chart) {
         "clip-path": `url(#${clipId})`,
         fill: "none",
         stroke: role.color,
-        "stroke-width": 24 * (active.length - index) / active.length,
+        "stroke-width": Math.max(2, 24 - index * 8),
         "stroke-linecap": "round",
         "stroke-linejoin": "round",
       }));
